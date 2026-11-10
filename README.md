@@ -1,10 +1,10 @@
 # Boggle Lab
 
-A 4×4 Boggle game backed by a complete solver. Every board's full word list, one legal path per word, the number of distinct paths, and the exact maximum score are computed — not sampled, not estimated.
+A 4×4 Boggle game backed by a complete solver. Every board's complete word list for the active dictionary, one legal path per word, the number of distinct paths, and the exact maximum score are computed — not sampled, not estimated.
 
 **Play online:** <https://slayyyyer.github.io/boggle/>
 
-The page is vanilla HTML, CSS and JavaScript in one folder. No framework, no build step, no dependencies, no backend, no analytics. The only runtime requests are the page itself, its local assets, and the local word list.
+The page is vanilla HTML, CSS and JavaScript in one folder. No framework, no build step, no dependencies, no backend, no analytics. The only runtime requests are the page itself, its local assets, and the selected word list; the full ENABLE1 file is fetched only if you choose it.
 
 ## Play
 
@@ -12,6 +12,7 @@ The page is vanilla HTML, CSS and JavaScript in one folder. No framework, no bui
 - **Random board** — a fresh board from the classic 16-die set.
 - **Opponent** — solo, or a CPU at Casual, Sharp or Ruthless strength.
 - **Round** — 3:00 by default; 1:00, 2:00 and 5:00 are selectable.
+- **Word list** — Everyday words by default, or the full ENABLE1 list. The everyday list is frequency-filtered to remove most archaic and word-game-only entries. Every result is exact for the active list.
 - Enter words by tapping adjacent tiles, dragging across them, or typing in the word box. `Enter` submits, `Escape` clears, `Backspace` removes the last selected tile. Every tile is a button, so Tab and Enter/Space also work.
 - A tile can be used once per word. Words must be at least three letters. Qu is printed on one tile and counts as two letters. Each distinct word counts once, even if several paths spell it.
 - Scoring is the visible table: 3–4 letters = 1, 5 = 2, 6 = 3, 7 = 5, 8+ = 11.
@@ -28,7 +29,7 @@ The page is vanilla HTML, CSS and JavaScript in one folder. No framework, no bui
 3. Only continue while the current prefix exists in the trie. That pruning is exact: it can drop a path only when no dictionary word can begin with it.
 4. Record each distinct word once, along with the first path found and the number of distinct paths that spell it.
 
-The result is exact for the shipped word list and that board. It is not a sample, a beam search or a heuristic. If a word is in the dictionary and can be spelled on the board, the solver finds it.
+The result is exact for the active word list and that board. It is not a sample, a beam search or a heuristic. If a word is in the dictionary and can be spelled on the board, the solver finds it.
 
 Guarantees and limits:
 
@@ -40,24 +41,34 @@ Guarantees and limits:
 
 The scoring table is one exported constant, `SCORE_BY_LENGTH`, so changing it changes the UI, the CPU and the results together.
 
-## Word list
+## Word lists
 
-The shipped list is `data/enable1-3-16.txt`:
+The default is `data/everyday-3-16.txt`; `data/enable1-3-16.txt` is the opt-in full list.
+
+### Everyday list
+
+- **Source:** ENABLE1 (public domain) intersected with the top 30,000 entries of Bart Massey's curated, MIT-licensed [`freq.txt.gz`](https://github.com/BartMassey/wordlists). The frequency source is pinned at commit `af52415c13af809bd8757a40f17f46e79d09583c`.
+- **Filter:** 3–16 letters, ASCII `a–z`, the same 80 blocked terms as Word Chomp, then the top 30,000 frequency ranks (count descending, alphabetical for ties).
+- **Shipped size:** 29,507 words, 256,536 bytes.
+- **SHA-256:** `29d429f0a79c9d0c585f4a86b4d60d699aecfae178f0c7c264f41baae60bea3b`
+- **Why:** This removes most of ENABLE1's obscure, archaic and word-game-only entries while keeping enough vocabulary for a normal board. It still contains some rare but legitimate words.
+
+### Full ENABLE1 list
 
 - **Source:** ENABLE1 (Enhanced North American Benchmark LExicon), the same public-domain upstream Word Chomp builds from. Upstream copy: <https://raw.githubusercontent.com/dolph/dictionary/master/enable1.txt>.
 - **License:** public domain.
-- **Filter:** 3–16 letters, ASCII `a–z`, with the same 80-word blocked-terms list Word Chomp applies. Nothing is added, stemmed or reordered.
+- **Filter:** 3–16 letters, ASCII `a–z`, and the same 80-word blocked-terms list. Nothing is added, stemmed or reordered.
 - **Shipped size:** 170,318 words, 1,698,337 bytes.
 - **SHA-256:** `332273e7f603db677679024dbdd238dcf0f8d591a74ce395e2b13cee67aa94c4`
 - **Upstream SHA-256:** `3f16130220645692ed49c7134e24a18504c2ca55b3c012f7290e3e77c63b1a89`
 
-`data/README.md` has the rebuild command and the full provenance. `node tools/build-wordlist.mjs` pins the upstream checksum, retries the download, and writes the filtered file. A test also pins the shipped word count and hash.
+`data/README.md` has the rebuild command and the full provenance; `data/THIRD_PARTY_NOTICES.md` carries the MIT notice. `node tools/build-wordlist.mjs` pins both upstream checksums and writes both files. Tests pin both shipped counts and hashes and verify the everyday list is a subset.
 
-ENABLE1 contains words with a Q not followed by U. They are left in the file, but no board can form them: the only Q face is `Qu`. That is a property of this game, not a missing word check.
+Both lists contain words with a Q not followed by U. They are left in the files, but no board can form them: the only Q face is `Qu`. That is a property of this game, not a missing word check.
 
 ## CPU model
 
-The CPU knows the complete solved list. Strength is therefore a parameter, not a performance of “thinking”. It never sees the player's words or score history beyond the current score gap.
+The CPU knows the complete solved list for the active dictionary. Strength is therefore a parameter, not a performance of “thinking”. It never sees the player's words or score history beyond the current score gap.
 
 Each attempt costs time. A candidate word of length `L` succeeds with probability
 
@@ -98,7 +109,7 @@ Only 4×4 ships. A 5×5 board would need its own 25-die set and layout; the solv
 
 ## Board lab
 
-The lab runs in the browser against the full dictionary.
+The lab runs in the browser against the active dictionary.
 
 - **Sample 250 boards** — seeded random boards, solved exactly, with histograms of word count and exact maximum score, plus median, mean and range. This is a measured sample of boards, not a census.
 - **Hill climb** — starts from the best sampled board (or a fresh board) and tries 300 random two-tile swaps. It keeps a swap only when the exact maximum rises, or ties with more words. The best board can be played immediately.
@@ -137,7 +148,7 @@ npm test
 node --test tests/*.test.mjs
 ```
 
-The eight tests run with plain Node and no dependencies:
+The nine tests run with plain Node and no dependencies:
 
 - the scoring table;
 - Qu on a hand-verified 3×3 board, including path and letter-count scoring;
@@ -146,6 +157,7 @@ The eight tests run with plain Node and no dependencies:
 - UTC daily seeding across a day and across timezones;
 - CPU protect/chase/idle behavior;
 - a fixed full-dictionary board with an exact word-count, score and joined-word SHA-256 snapshot;
+- the everyday list's count, checksum, subset relationship and a regression board;
 - internal exactness checks over every word on a full-dictionary board.
 
 ## Benchmarks
@@ -154,13 +166,16 @@ Measured on the development machine: Node v24.20.0, win32 x64. The browser run i
 
 | Run | Boards | Trie build | Mean | Median | p95 | Max |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Node (`node tools/benchmark.mjs --boards=200`) | 200 | 74.8 ms | 0.18 ms | 0.16 ms | 0.34 ms | 0.75 ms |
-| Browser (`BoggleLab.benchmark(100)`) | 100 | 166.8 ms | 0.229 ms | 0.20 ms | 0.40 ms | 0.60 ms |
+| Node everyday (`--boards=200`) | 200 | 18.9 ms | 0.10 ms | 0.09 ms | 0.20 ms | 0.33 ms |
+| Node full (`--boards=200 --lexicon=full`) | 200 | 74.5 ms | 0.28 ms | 0.19 ms | 0.58 ms | 7.88 ms |
+| Browser everyday (`BoggleLab.benchmark(100)`) | 100 | 29.4 ms | 0.114 ms | 0.10 ms | 0.30 ms | 0.60 ms |
+| Browser full (`BoggleLab.benchmark(100)`) | 100 | 97.7 ms | 0.191 ms | 0.20 ms | 0.40 ms | 0.50 ms |
 
-The same runs averaged 89.6 words and a 125.8 maximum score per board in Node, and 88.76 words and 122.55 in the browser. A typical board is a fraction of a millisecond; the one-off trie build is the larger cost, and it happens once at load.
+The everyday runs averaged 49.5 words and a 61.4 maximum in Node, and 49.38 words and 60.3 in the browser. The full runs averaged 89.6/125.8 in Node and 88.76/122.55 in the browser. The 7.88 ms Node full outlier is why that row's mean is above its median; a typical board is a fraction of a millisecond.
 
 ```sh
 npm run bench -- --boards=200
+npm run bench -- --boards=200 --lexicon=full
 ```
 
 In the browser, after the dictionary loads:
@@ -179,12 +194,14 @@ js/solver.js               DOM-free trie and exact path solver
 js/boards.js               classic dice, seeded generation, UTC daily seed
 js/cpu.js                  documented strength and match-aware attempt model
 js/app.js                  game flow, input, timer, CPU pacing, results, lab
-data/enable1-3-16.txt      shipped 3–16 letter ENABLE1 list
+data/everyday-3-16.txt     default 29,507-word frequency-filtered list
+data/enable1-3-16.txt      opt-in 170,318-word full ENABLE1 list
 data/README.md             word-list provenance and rebuild instructions
+data/THIRD_PARTY_NOTICES.md  ENABLE1 and MIT frequency-list notices
 tools/build-wordlist.mjs   checksum-pinned list builder
 tools/benchmark.mjs        Node benchmark
 tools/serve.mjs            dependency-free local static server
-tests/solver.test.mjs      eight Node tests
+tests/solver.test.mjs      nine Node tests
 .github/workflows/pages.yml  static Pages deployment
 docs/portfolio-snippet.html  drafted /projects/ card, not applied to the main site
 ```
@@ -198,9 +215,9 @@ The published site is <https://slayyyyer.github.io/boggle/>.
 ## Limits and deliberate omissions
 
 - No backend, accounts, leaderboards or shared scores. The daily board is shared by seed, not by a server.
-- No analytics and no runtime network requests after the initial page and word list. `localStorage` holds the sound preference and round options only.
+- No analytics and no runtime network requests after the selected word list loads. Choosing Full ENABLE1 fetches it once. `localStorage` holds the sound preference, round options and dictionary choice only.
 - Only the 4×4 UI ships. The solver accepts another side, but there is no 5×5 dice set or layout.
-- ENABLE1 is broad and includes obscure words. It is not the official Boggle dictionary; a word's presence here is a property of this list.
+- The everyday list is frequency-filtered but still includes some rare words; Full ENABLE1 is broader and explicitly opt-in. Neither is the official Boggle dictionary; a word's presence is a property of the list.
 - The CPU is a documented probability model, not an exact game-theoretic opponent. The board lab's hill climb is a local search and is always labelled “best found.”
 - The 3:00 default, the 1/2/5-minute options and the UTC daily reset are deliberate product choices, not a claim about tournament rules.
 - No physical phone benchmark; the 375px layout is measured in desktop Chromium.
@@ -209,4 +226,4 @@ The published site is <https://slayyyyer.github.io/boggle/>.
 
 Boggle is a trademark of Hasbro. Boggle Lab is an independent, unaffiliated project; it is not sponsored or endorsed by Hasbro. The title uses “Boggle” descriptively for the 4×4 word-search game. All visuals and code here are original, and the classic dice letter distribution is factual game data rather than copied artwork.
 
-ENABLE1 is public domain. The blocked-terms list follows Word Chomp's family-friendly filter.
+ENABLE1 is public domain. The everyday list uses Bart Massey's MIT-licensed frequency list; see `data/THIRD_PARTY_NOTICES.md`. The blocked-terms list follows Word Chomp's family-friendly filter.

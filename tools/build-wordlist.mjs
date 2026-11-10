@@ -1,20 +1,30 @@
-// Builds data/enable1-3-16.txt for Boggle Lab.
+// Builds the two shipped Boggle Lab word lists.
 //
-// Upstream: ENABLE1, the Enhanced North American Benchmark Lexicon, released
-// into the public domain by its authors. This script verifies the exact
-// upstream bytes before filtering, so a changed source cannot slip in silently.
+// ENABLE1 is public domain. The everyday list is ENABLE1 intersected with the
+// top 30,000 entries of Bart Massey's MIT-licensed frequency list. Both
+// upstream files are checksum-pinned so a changed source cannot slip in
+// silently.
 //
 // Run with: node tools/build-wordlist.mjs
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import zlib from "node:zlib";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const OUT = path.join(ROOT, "data", "enable1-3-16.txt");
-const SOURCE = "https://raw.githubusercontent.com/dolph/dictionary/master/enable1.txt";
-const EXPECTED_SOURCE_SHA256 =
+const FULL_OUT = path.join(ROOT, "data", "enable1-3-16.txt");
+const EVERYDAY_OUT = path.join(ROOT, "data", "everyday-3-16.txt");
+const ENABLE1_SOURCE = "https://raw.githubusercontent.com/dolph/dictionary/master/enable1.txt";
+const EXPECTED_ENABLE1_SHA256 =
   "3f16130220645692ed49c7134e24a18504c2ca55b3c012f7290e3e77c63b1a89";
+const FREQ_SOURCE =
+  "https://raw.githubusercontent.com/BartMassey/wordlists/af52415c13af809bd8757a40f17f46e79d09583c/freq.txt.gz";
+const EXPECTED_FREQ_GZ_SHA256 =
+  "6ac3b50bdc3631d9755bb36a00083b68793a9419120f317ea47d9951b2ef3f3d";
+const EXPECTED_FREQ_TEXT_SHA256 =
+  "f00c2c9cdabb5e47880c81ab983ed6e878301f9ea71a6743b0fce6018d439cc3";
+const EVERYDAY_RANK = 30_000;
 
 // Same family-friendly policy as Word Chomp. Slurs and strong profanity only.
 // This is the only editorial filter applied to ENABLE1; it is documented in
@@ -34,7 +44,11 @@ whore whores wop wops
     .split(/\s+/)
 );
 
-async function download(url) {
+function sha256(bytes) {
+  return crypto.createHash("sha256").update(bytes).digest("hex");
+}
+
+async function download(url, label) {
   let lastError;
   for (let attempt = 0; attempt < 4; attempt += 1) {
     try {
@@ -50,24 +64,48 @@ async function download(url) {
     }
   }
   throw new Error(
-    `ENABLE1 download failed after 4 attempts: ${lastError?.cause?.code || lastError?.message}. ` +
-      "Download the file yourself and rerun with --source=path/to/enable1.txt"
+    `${label} download failed after 4 attempts: ${lastError?.cause?.code || lastError?.message}`
   );
 }
 
-const sourceArg = process.argv.find((arg) => arg.startsWith("--source="))?.slice(9);
-const bytes = sourceArg
+function argValue(name) {
+  return process.argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
+}
+
+const sourceArg = argValue("source");
+const freqArg = argValue("freq-source");
+
+const enableBytes = sourceArg
   ? await fs.readFile(path.resolve(ROOT, sourceArg))
-  : await download(SOURCE);
-const sourceSha = crypto.createHash("sha256").update(bytes).digest("hex");
-if (sourceSha !== EXPECTED_SOURCE_SHA256) {
+  : await download(ENABLE1_SOURCE, "ENABLE1");
+const enableSha = sha256(enableBytes);
+if (enableSha !== EXPECTED_ENABLE1_SHA256) {
   throw new Error(
-    `ENABLE1 checksum changed.\n  expected ${EXPECTED_SOURCE_SHA256}\n  received ${sourceSha}\n` +
+    `ENABLE1 checksum changed.\n  expected ${EXPECTED_ENABLE1_SHA256}\n  received ${enableSha}\n` +
       "Review the new source before updating this script."
   );
 }
 
-const allRows = bytes
+const freqBytes = freqArg
+  ? await fs.readFile(path.resolve(ROOT, freqArg))
+  : await download(FREQ_SOURCE, "Frequency list");
+const freqIsGzip = Buffer.isBuffer(freqBytes) && freqBytes[0] === 0x1f && freqBytes[1] === 0x8b;
+if (freqIsGzip && sha256(freqBytes) !== EXPECTED_FREQ_GZ_SHA256) {
+  throw new Error(
+    `Frequency gzip checksum changed.\n  expected ${EXPECTED_FREQ_GZ_SHA256}\n  received ${sha256(freqBytes)}\n` +
+      "Review the new source before updating this script."
+  );
+}
+const freqText = freqIsGzip ? zlib.gunzipSync(freqBytes).toString("utf8") : freqBytes.toString("utf8");
+const freqTextSha = sha256(freqText);
+if (freqTextSha !== EXPECTED_FREQ_TEXT_SHA256) {
+  throw new Error(
+    `Frequency list checksum changed.\n  expected ${EXPECTED_FREQ_TEXT_SHA256}\n  received ${freqTextSha}\n` +
+      "Review the new source before updating this script."
+  );
+}
+
+const allRows = enableBytes
   .toString("utf8")
   .trim()
   .split(/\r?\n/)
@@ -75,26 +113,44 @@ const allRows = bytes
 
 const inRange = allRows.filter((word) => word.length >= 3 && word.length <= 16);
 const blocked = inRange.filter((word) => BLOCKED.has(word));
-const words = inRange
+const fullWords = inRange
   .filter((word) => !BLOCKED.has(word))
   .sort();
 
-const body = `${words.join("\n")}\n`;
-const outSha = crypto.createHash("sha256").update(body).digest("hex");
+const freqRows = freqText
+  .trim()
+  .split(/\r?\n/)
+  .map((line) => {
+    const match = line.match(/^([a-z]+)\s+(\d+)$/);
+    if (!match) throw new Error(`Bad frequency row: ${line}`);
+    return { word: match[1], count: Number(match[2]) };
+  });
+freqRows.sort((a, b) => b.count - a.count || a.word.localeCompare(b.word));
+const everydayRanked = new Set(freqRows.slice(0, EVERYDAY_RANK).map((row) => row.word));
+const everydayWords = fullWords.filter((word) => everydayRanked.has(word));
 
-await fs.mkdir(path.dirname(OUT), { recursive: true });
-await fs.writeFile(OUT, body, "utf8");
+function listBody(words) {
+  return `${words.join("\n")}\n`;
+}
 
-const byLength = {};
-for (const word of words) byLength[word.length] = (byLength[word.length] || 0) + 1;
+function report(name, outPath, words, body) {
+  console.log(`${name}:`);
+  console.log(`  Words:      ${words.length}`);
+  console.log(`  File size:  ${Buffer.byteLength(body)} bytes`);
+  console.log(`  SHA-256:    ${sha256(body)}`);
+  console.log(`  Wrote:      ${outPath}`);
+}
 
-console.log(`Upstream rows:       ${allRows.length}`);
-console.log(`3-16 before filter:  ${inRange.length}`);
-console.log(`Blocked terms:       ${blocked.length}`);
-console.log(`Shipped words:       ${words.length}`);
-const longest = words.reduce((maximum, word) => Math.max(maximum, word.length), 0);
-console.log(`Longest word:        ${longest} letters`);
-console.log(`File size:           ${Buffer.byteLength(body)} bytes`);
-console.log(`SHA-256:             ${outSha}`);
-console.log("Length distribution:", byLength);
-console.log(`Wrote ${OUT}`);
+const fullBody = listBody(fullWords);
+const everydayBody = listBody(everydayWords);
+
+await fs.mkdir(path.dirname(FULL_OUT), { recursive: true });
+await fs.writeFile(FULL_OUT, fullBody, "utf8");
+await fs.writeFile(EVERYDAY_OUT, everydayBody, "utf8");
+
+console.log(`ENABLE1 upstream rows: ${allRows.length}`);
+console.log(`3-16 before filter:   ${inRange.length}`);
+console.log(`Blocked terms:        ${blocked.length}`);
+report("Full ENABLE1", FULL_OUT, fullWords, fullBody);
+console.log(`Frequency rows:       ${freqRows.length}`);
+report(`Everyday (top ${EVERYDAY_RANK.toLocaleString()})`, EVERYDAY_OUT, everydayWords, everydayBody);

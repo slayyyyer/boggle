@@ -100,13 +100,20 @@
                   <option value="300">5:00</option>
                 </select>
               </label>
+              <label class="field">
+                <span>Word list</span>
+                <select id="dictionarySelect" title="Everyday words is frequency-filtered; Full ENABLE1 includes obscure entries.">
+                  <option value="everyday" selected>Everyday words</option>
+                  <option value="full">Full ENABLE1</option>
+                </select>
+              </label>
             </div>
 
             <p class="load-status" id="loadStatus" role="status">Loading the word list…</p>
             <p class="hero-meta">
-              <span><b id="heroWordCount">170,318</b> words</span>
+              <span><b id="heroWordCount">29,507</b> words</span>
               <span>UTC daily seed</span>
-              <span>No network after load</span>
+              <span>Runs locally</span>
             </p>
           </div>
 
@@ -154,7 +161,7 @@
             <div>
               <p class="eyebrow"><span class="eyebrow-dot"></span> Board lab · stretch</p>
               <h2 id="labTitle">What does a Boggle board look like?</h2>
-              <p class="section-lede">Sample random boards with the full dictionary, then climb toward a high scorer. Everything runs here in the browser. Results are <b>best found</b>, never a proven maximum.</p>
+              <p class="section-lede">Sample random boards with the active dictionary, then climb toward a high scorer. Everything runs here in the browser. Results are <b>best found</b>, never a proven maximum.</p>
             </div>
             <div class="lab-actions">
               <button class="btn btn-secondary" id="sampleBtn" type="button" disabled>Sample 250 boards</button>
@@ -343,7 +350,7 @@
           <a href="#top">Back to top ↑</a>
         </nav>
       </div>
-      <p class="foot-fine">Vanilla HTML, CSS and JavaScript. No framework, no build step, no analytics. The word list is public-domain ENABLE1.</p>
+      <p class="foot-fine">Vanilla HTML, CSS and JavaScript. No framework, no build step, no analytics. Word lists: public-domain ENABLE1 and a curated everyday subset.</p>
     </footer>
   </div>
 
@@ -359,19 +366,19 @@
       </section>
       <section>
         <h3>The guarantee</h3>
-        <p>For the shipped word list, the solver builds a trie and walks every simple path from every starting tile. It returns every word with a legal path, one path for each word, and the number of distinct paths. The maximum score is the sum of those distinct words. It is exact for that board and that dictionary — not a sample, and not a claim about every English dictionary.</p>
+        <p>For the selected word list, the solver builds a trie and walks every simple path from every starting tile. It returns every word with a legal path, one path for each word, and the number of distinct paths. The maximum score is the sum of those distinct words. It is exact for that board and that dictionary — not a sample, and not a claim about every English dictionary.</p>
       </section>
       <section>
         <h3>The dictionary</h3>
-        <p>ENABLE1, 3–16 letters, minus a short blocked-terms list. ENABLE1 is released into the public domain by its authors. The shipped file has <b>170,318</b> words and its source checksum is pinned in the repository. Words containing Q not followed by U are in the list but can never be formed: the only Q tile is Qu.</p>
+        <p><b>Everyday words</b> is the default: ENABLE1 entries that also appear in the top 30,000 words of a curated, MIT-licensed frequency list, after the same blocked-terms filter. It has <b>29,507</b> words and removes most archaic and word-game-only entries. <b>Full ENABLE1</b> is available in the word-list menu and has <b>170,318</b> words, including obscure ones. Both are 3–16 letters, and both checksums are pinned in the repository. Words containing Q not followed by U are in the lists but can never be formed: the only Q tile is Qu.</p>
       </section>
       <section>
         <h3>The CPU</h3>
-        <p>The CPU knows the full solved list, so strength is a parameter rather than a performance. Each attempt costs time and succeeds with a probability that falls with word length. With 30 seconds left and a lead, it only attempts words it is likely to find, and may idle. When behind with 45 seconds left, it accepts risky long words because only a swing can win. It never sees your words — only the score gap.</p>
+        <p>The CPU knows the complete solved list for the selected dictionary, so strength is a parameter rather than a performance. Each attempt costs time and succeeds with a probability that falls with word length. With 30 seconds left and a lead, it only attempts words it is likely to find, and may idle. When behind with 45 seconds left, it accepts risky long words because only a swing can win. It never sees your words — only the score gap.</p>
       </section>
       <section>
         <h3>The board lab</h3>
-        <p>The sample and hill climb are measured in this browser against the full dictionary. A hill-climb result is labelled “best found” because a local search cannot prove a board is optimal.</p>
+        <p>The sample and hill climb are measured in this browser against the active dictionary. A hill-climb result is labelled “best found” because a local search cannot prove a board is optimal.</p>
       </section>
       <section>
         <h3>Keyboard and limits</h3>
@@ -381,7 +388,7 @@
   </dialog>
 
   <noscript>
-    <p class="noscript">Boggle Lab needs JavaScript. The solver and word list are local; nothing is sent anywhere.</p>
+    <p class="noscript">Boggle Lab needs JavaScript. The solver and word lists are local; nothing is sent anywhere.</p>
   </noscript>
 
   <script type="module" src="js/app.js"></script>

@@ -1,5 +1,5 @@
-// Node benchmark for the shipped word list and solver.
-// Run: node tools/benchmark.mjs [--boards=200]
+// Node benchmark for a shipped word list and the solver.
+// Run: node tools/benchmark.mjs [--boards=200] [--lexicon=everyday|full]
 import fs from "node:fs";
 import path from "node:path";
 import { performance } from "node:perf_hooks";
@@ -8,7 +8,13 @@ import { buildTrie, solveBoard } from "../js/solver.js";
 import { DICE_4X4, generateBoard, mulberry32 } from "../js/boards.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const DATA = path.join(ROOT, "data", "enable1-3-16.txt");
+const FILES = {
+  everyday: "data/everyday-3-16.txt",
+  full: "data/enable1-3-16.txt",
+};
+const lexiconArg = process.argv.find((arg) => arg.startsWith("--lexicon="))?.split("=")[1];
+const lexicon = FILES[lexiconArg] ? lexiconArg : "everyday";
+const DATA = path.join(ROOT, FILES[lexicon]);
 const boardArg = process.argv.find((arg) => arg.startsWith("--boards="));
 const BOARDS = Math.max(1, Number(boardArg?.split("=")[1] || 200));
 
@@ -42,7 +48,7 @@ const percentile = (values, fraction) =>
 
 console.log("Boggle Lab benchmark");
 console.log(`Node ${process.version} on ${process.platform} ${process.arch}`);
-console.log(`Dictionary: ${words.length.toLocaleString()} words (3-16 letters)`);
+console.log(`Dictionary: ${lexicon} (${words.length.toLocaleString()} words, 3-16 letters)`);
 console.log(`Trie build: ${buildMs.toFixed(1)} ms`);
 console.log(`Boards: ${BOARDS}`);
 console.log(`Solve mean: ${mean(times).toFixed(2)} ms`);

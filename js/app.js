@@ -37,6 +37,9 @@ const state = {
   wordCount: 0,
   trieBuildMs: 0,
   loadError: null,
+  lexicon: "everyday",
+  lexicons: { everyday: null, full: null },
+  loadingLexicon: null,
   screen: "home",
   running: false,
   paused: false,
@@ -466,55 +469,131 @@ const playView = new BoardView($("board"), $("pathLayer"), { interactive: true }
 const resultView = new BoardView($("resultBoard"), $("resultPathLayer"), { interactive: false });
 const hillView = new BoardView($("hillBoard"), null, { interactive: false });
 
-/* ---------- dictionary ---------- */
+/* ---------- dictionaries ---------- */
 
-async function loadDictionary() {
+const LEXICONS = Object.freeze({
+  everyday: Object.freeze({
+    id: "everyday",
+    path: "data/everyday-3-16.txt",
+    label: "everyday words",
+  }),
+  full: Object.freeze({
+    id: "full",
+    path: "data/enable1-3-16.txt",
+    label: "full ENABLE1",
+  }),
+});
+
+function setStartButtons() {
+  const ready = Boolean(state.trie) && !state.loadingLexicon;
+  $("startDaily").disabled = !ready;
+  $("startRandom").disabled = !ready;
+  $("dictionarySelect").disabled = Boolean(state.loadingLexicon);
+}
+
+async function loadLexicon(kind) {
+  const cached = state.lexicons[kind];
+  if (cached) return cached;
+  const descriptor = LEXICONS[kind];
+  if (!descriptor) throw new Error(`Unknown word list: ${kind}`);
+
+  const response = await fetch(descriptor.path, { cache: "force-cache" });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const text = await response.text();
+  const words = text.trim().split(/\r?\n/).filter(Boolean);
+  if (words.length < 1000) throw new Error("The word list looks truncated.");
+
+  const start = performance.now();
+  const trie = buildTrie(words);
+  const record = {
+    ...descriptor,
+    words,
+    trie,
+    wordCount: words.length,
+    trieBuildMs: performance.now() - start,
+  };
+  state.lexicons[kind] = record;
+  return record;
+}
+
+function resetLab() {
+  state.lab.samples = null;
+  state.lab.best = null;
+  state.lab.busy = false;
+  $("labSummary").textContent = "No sample yet. The solver is exact for each board; the distribution is measured, not assumed.";
+  $("hillMeta").textContent = "Run the sample or hill climb to find a board.";
+  $("playHillBtn").disabled = true;
+  renderHistogram($("wordHistogram"), [], { binSize: 25, unit: "words" });
+  renderHistogram($("scoreHistogram"), [], { binSize: 50, unit: "points" });
+  hillView.render([], 4);
+}
+
+async function activateLexicon(kind) {
+  if (!LEXICONS[kind] || state.loadingLexicon) return false;
+  const descriptor = LEXICONS[kind];
+  state.loadingLexicon = kind;
+  state.loadError = null;
+  setStartButtons();
+  setLabButtons();
+  $("loadStatus").className = "load-status";
+  $("loadStatus").textContent = `Loading ${descriptor.label}…`;
+
   try {
-    const response = await fetch("data/enable1-3-16.txt", { cache: "force-cache" });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const text = await response.text();
-    const words = text.trim().split(/\r?\n/).filter(Boolean);
-    if (words.length < 1000) throw new Error("The word list looks truncated.");
-
-    const start = performance.now();
-    const trie = buildTrie(words);
-    const buildMs = performance.now() - start;
-
-    state.words = words;
-    state.trie = trie;
-    state.wordCount = words.length;
-    state.trieBuildMs = buildMs;
-    $("heroWordCount").textContent = words.length.toLocaleString();
-    $("loadStatus").textContent = `${words.length.toLocaleString()} words loaded · trie built in ${buildMs.toFixed(0)} ms`;
+    const record = await loadLexicon(kind);
+    state.lexicon = kind;
+    state.words = record.words;
+    state.trie = record.trie;
+    state.wordCount = record.wordCount;
+    state.trieBuildMs = record.trieBuildMs;
+    state.loadingLexicon = null;
+    $("dictionarySelect").value = kind;
+    $("heroWordCount").textContent = record.wordCount.toLocaleString();
+    $("loadStatus").textContent = `${record.wordCount.toLocaleString()} ${descriptor.label} loaded · trie built in ${record.trieBuildMs.toFixed(0)} ms`;
     $("loadStatus").className = "load-status is-ready";
-    $("startDaily").disabled = false;
-    $("startRandom").disabled = false;
-    $("sampleBtn").disabled = false;
-    $("climbBtn").disabled = false;
-    $("labStatus").textContent = "Ready. Sample the board distribution or run the hill climb.";
+    resetLab();
     renderPreview();
+    setStartButtons();
+    setLabButtons();
+    $("labStatus").textContent = "Ready. Sample the board distribution or run the hill climb.";
+    saveOptions();
 
-    window.BoggleLab = {
-      get ready() {
-        return Boolean(state.trie);
-      },
-      get wordCount() {
-        return state.wordCount;
-      },
-      get trieBuildMs() {
-        return state.trieBuildMs;
-      },
-      benchmark,
-      solve(cells) {
-        return solveBoard(cells, state.trie, { side: Math.round(Math.sqrt(cells.length)) });
-      },
-    };
+    if (!window.BoggleLab) {
+      window.BoggleLab = {
+        get ready() {
+          return Boolean(state.trie);
+        },
+        get wordCount() {
+          return state.wordCount;
+        },
+        get lexicon() {
+          return state.lexicon;
+        },
+        get trieBuildMs() {
+          return state.trieBuildMs;
+        },
+        benchmark,
+        solve(cells) {
+          return solveBoard(cells, state.trie, { side: Math.round(Math.sqrt(cells.length)) });
+        },
+      };
+    }
+    return true;
   } catch (error) {
     state.loadError = error;
-    $("loadStatus").textContent = "Could not load data/enable1-3-16.txt. Serve the folder over HTTP (node tools/serve.mjs) and reload.";
+    state.loadingLexicon = null;
+    $("dictionarySelect").value = state.lexicon;
+    $("loadStatus").textContent = `Could not load ${descriptor.path}. Serve the folder over HTTP (node tools/serve.mjs) and reload.`;
     $("loadStatus").className = "load-status is-error";
     $("labStatus").textContent = "The dictionary did not load.";
+    setStartButtons();
+    setLabButtons();
+    return false;
   }
+}
+
+function loadDictionary() {
+  const requested = $("dictionarySelect").value;
+  return activateLexicon(LEXICONS[requested] ? requested : "everyday");
 }
 
 function renderPreview() {
@@ -981,7 +1060,8 @@ function highlightResultWord(word) {
 /* ---------- board lab ---------- */
 
 function setLabButtons() {
-  const busy = state.lab.busy;
+  const busy = Boolean(state.loadingLexicon) || state.lab.busy;
+  $("dictionarySelect").disabled = busy;
   $("sampleBtn").disabled = !state.trie || busy;
   $("climbBtn").disabled = !state.trie || busy;
   $("playHillBtn").disabled = !state.lab.best || busy;
@@ -1173,6 +1253,7 @@ async function benchmark(count = 100) {
   times.sort((a, b) => a - b);
   const mean = times.reduce((sum, value) => sum + value, 0) / times.length;
   return {
+    lexicon: state.lexicon,
     boards: total,
     trieBuildMs: state.trieBuildMs,
     meanMs: mean,
@@ -1192,6 +1273,7 @@ function saveOptions() {
     JSON.stringify({
       opponent: $("opponentSelect").value,
       seconds: Number($("roundSelect").value),
+      dictionary: $("dictionarySelect").value,
     })
   );
 }
@@ -1206,6 +1288,9 @@ function loadOptions() {
     }
     if ([60, 120, 180, 300].includes(options.seconds)) {
       $("roundSelect").value = String(options.seconds);
+    }
+    if (["everyday", "full"].includes(options.dictionary)) {
+      $("dictionarySelect").value = options.dictionary;
     }
   } catch {
     // Ignore a malformed saved option.
@@ -1318,6 +1403,12 @@ function init() {
 
   $("opponentSelect").addEventListener("change", saveOptions);
   $("roundSelect").addEventListener("change", saveOptions);
+  $("dictionarySelect").addEventListener("change", () => {
+    const kind = $("dictionarySelect").value;
+    activateLexicon(kind).then((ok) => {
+      if (!ok) saveOptions();
+    });
+  });
   document.addEventListener(
     "pointerdown",
     () => {

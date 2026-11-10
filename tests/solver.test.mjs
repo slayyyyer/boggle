@@ -245,6 +245,11 @@ test("the fixed full-dictionary board matches its regression snapshot", () => {
     .readFileSync(path.join(ROOT, "data", "enable1-3-16.txt"), "utf8")
     .trim()
     .split(/\r?\n/);
+  assert.equal(words.length, 170_318);
+  assert.equal(
+    crypto.createHash("sha256").update(fs.readFileSync(path.join(ROOT, "data", "enable1-3-16.txt"))).digest("hex"),
+    "332273e7f603db677679024dbdd238dcf0f8d591a74ce395e2b13cee67aa94c4"
+  );
   const trie = buildTrie(words);
   const board = ["c", "j", "e", "m", "w", "k", "s", "l", "h", "i", "s", "l", "n", "e", "i", "e"];
   const solution = solveBoard(board, trie, { side: 4 });
@@ -257,6 +262,34 @@ test("the fixed full-dictionary board matches its regression snapshot", () => {
       .digest("hex"),
     "315f2f8de8009e38e965f0fe25bba425e9344db109b6f2c058b06b5fa35d1e26"
   );
+});
+
+test("the everyday list is a frequency-filtered subset of the full list", () => {
+  const full = fs
+    .readFileSync(path.join(ROOT, "data", "enable1-3-16.txt"), "utf8")
+    .trim()
+    .split(/\r?\n/);
+  const fullText = fs.readFileSync(path.join(ROOT, "data", "everyday-3-16.txt"), "utf8");
+  const everyday = fullText.trim().split(/\r?\n/);
+  const fullSet = new Set(full);
+
+  assert.equal(everyday.length, 29_507);
+  assert.equal(
+    crypto.createHash("sha256").update(fullText).digest("hex"),
+    "29d429f0a79c9d0c585f4a86b4d60d699aecfae178f0c7c264f41baae60bea3b"
+  );
+  for (const word of everyday) {
+    assert.equal(fullSet.has(word), true, `${word} is not in the full list`);
+    assert.ok(word.length >= 3 && word.length <= 16, `${word} is outside 3-16 letters`);
+  }
+  for (const word of ["wab", "wha", "zoa", "urb", "tew", "prahu", "thraw", "waur", "gorp", "thew"]) {
+    assert.equal(everyday.includes(word), false, `${word} should be filtered out`);
+  }
+
+  const board = ["m", "l", "t", "e", "p", "b", "h", "w", "g", "r", "a", "u", "z", "o", "u", "r"];
+  const solution = solveBoard(board, buildTrie(everyday), { side: 4 });
+  assert.equal(solution.wordCount, 23);
+  assert.equal(solution.maxScore, 23);
 });
 
 test("the full dictionary board is internally exact", () => {
