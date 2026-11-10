@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#e6f4ff">
+  <meta name="theme-color" content="#f4eddf">
   <title>Boggle Lab — an exact Boggle solver you can play</title>
   <meta name="description" content="A 4x4 Boggle game backed by a complete solver: every word, every path and the exact maximum score for each board. Daily board, CPU opponent and a board lab.">
   <link rel="canonical" href="https://slayyyyer.github.io/boggle/">
@@ -18,6 +18,7 @@
   <meta name="color-scheme" content="light">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/field-notes.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -35,20 +36,22 @@
     <header class="topbar">
       <a class="brand" href="#top" aria-label="Boggle Lab home">
         <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 48 48" role="img">
-            <rect x="5" y="5" width="16" height="16" rx="5" fill="#ffffff" opacity=".92"/>
-            <rect x="27" y="5" width="16" height="16" rx="5" fill="#8ce7ff" opacity=".92"/>
-            <rect x="5" y="27" width="16" height="16" rx="5" fill="#ffb7d9" opacity=".92"/>
-            <rect x="27" y="27" width="16" height="16" rx="5" fill="#ffffff" opacity=".92"/>
-            <path d="M29 34h11M34.5 29v11" stroke="#0a6fd0" stroke-width="2.4" stroke-linecap="round"/>
-            <path d="M10 10h6M13 7v6" stroke="#0a6fd0" stroke-width="2" stroke-linecap="round" opacity=".65"/>
+          <svg viewBox="0 0 48 48" role="presentation">
+            <rect x="3" y="3" width="42" height="42" fill="#faf5ea" stroke="#211d18" stroke-width="1.5"/>
+            <rect x="8" y="8" width="14" height="14" fill="#a93427"/>
+            <rect x="26" y="8" width="14" height="14" fill="#d9a52d"/>
+            <rect x="8" y="26" width="14" height="14" fill="#2f5c48"/>
+            <rect x="26" y="26" width="14" height="14" fill="none" stroke="#211d18" stroke-width="1.5"/>
+            <path d="M29 33h8M33 29v8" stroke="#211d18" stroke-width="1.8"/>
           </svg>
         </span>
         <span class="brand-copy">
           <strong>Boggle Lab</strong>
-          <small>exact word search</small>
+          <small>an exact word game</small>
         </span>
       </a>
+
+      <span class="topbar-issue" aria-hidden="true">No. 016 / Field notes</span>
 
       <nav class="topnav" aria-label="Primary">
         <button class="navlink" id="navHome" type="button">Play</button>
@@ -72,7 +75,7 @@
       <section class="screen home-screen" id="screenHome">
         <div class="hero glass">
           <div class="hero-copy">
-            <p class="eyebrow"><span class="eyebrow-dot"></span> A complete word search</p>
+            <p class="eyebrow"><span class="eyebrow-dot"></span> The complete word search</p>
             <h1 class="hero-title">Find every word.<br><em>Prove it.</em></h1>
             <p class="hero-lede">A 4×4 Boggle board with a solver that knows the whole answer: every word, every path, and the exact maximum score. Not a sample. Not an estimate.</p>
 
@@ -119,7 +122,7 @@
 
           <div class="hero-art">
             <div class="art-halo" aria-hidden="true"></div>
-            <p class="preview-caption">A sample board, solved</p>
+            <p class="preview-caption">Specimen board, solved</p>
             <div class="preview-board" id="previewBoard" aria-hidden="true"></div>
             <div class="solver-badge">
               <span>Exact maximum</span>
