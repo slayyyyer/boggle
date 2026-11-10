@@ -1,0 +1,12 @@
+{
+  "name": "boggle-lab",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A 4x4 Boggle game backed by a complete, exact solver.",
+  "scripts": {
+    "serve": "node tools/serve.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "bench": "node tools/benchmark.mjs"
+  }
+}

@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e6f4ff">
+  <title>Boggle Lab — an exact Boggle solver you can play</title>
+  <meta name="description" content="A 4x4 Boggle game backed by a complete solver: every word, every path and the exact maximum score for each board. Daily board, CPU opponent and a board lab.">
+  <link rel="canonical" href="https://slayyyyer.github.io/boggle/">
+  <meta property="og:title" content="Boggle Lab — an exact Boggle solver you can play">
+  <meta property="og:description" content="Every word, every path and the exact maximum score for each board. A daily 4x4 Boggle board with a complete solver, a CPU opponent and a board lab.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://slayyyyer.github.io/boggle/">
+  <meta property="og:site_name" content="Justin Baker">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Boggle Lab — an exact Boggle solver you can play">
+  <meta name="twitter:description" content="Every word, every path and the exact maximum score for each board.">
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="scene" aria-hidden="true">
+    <span class="scene-glow glow-one"></span>
+    <span class="scene-glow glow-two"></span>
+    <span class="scene-glow glow-three"></span>
+    <span class="scene-ring ring-one"></span>
+    <span class="scene-ring ring-two"></span>
+    <span class="scene-grain"></span>
+  </div>
+
+  <div class="app" id="top">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Boggle Lab home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" role="img">
+            <rect x="5" y="5" width="16" height="16" rx="5" fill="#ffffff" opacity=".92"/>
+            <rect x="27" y="5" width="16" height="16" rx="5" fill="#8ce7ff" opacity=".92"/>
+            <rect x="5" y="27" width="16" height="16" rx="5" fill="#ffb7d9" opacity=".92"/>
+            <rect x="27" y="27" width="16" height="16" rx="5" fill="#ffffff" opacity=".92"/>
+            <path d="M29 34h11M34.5 29v11" stroke="#0a6fd0" stroke-width="2.4" stroke-linecap="round"/>
+            <path d="M10 10h6M13 7v6" stroke="#0a6fd0" stroke-width="2" stroke-linecap="round" opacity=".65"/>
+          </svg>
+        </span>
+        <span class="brand-copy">
+          <strong>Boggle Lab</strong>
+          <small>exact word search</small>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="Primary">
+        <button class="navlink" id="navHome" type="button">Play</button>
+        <a class="navlink" id="navLab" href="#lab">Board lab</a>
+        <button class="navlink" id="howBtn" type="button">How it works</button>
+        <a class="navlink navlink-github" href="https://github.com/slayyyyer/boggle" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+        <button class="icon-btn" id="soundBtn" type="button" aria-pressed="false" aria-label="Enable sound" title="Sound off">
+          <svg class="icon sound-on" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9v6h4l5 4V5L8 9H4Z"/>
+            <path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/>
+          </svg>
+          <svg class="icon sound-off" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9v6h4l5 4V5L8 9H4Z"/>
+            <path d="m16 9 5 5M21 9l-5 5"/>
+          </svg>
+        </button>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="screen home-screen" id="screenHome">
+        <div class="hero glass">
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="eyebrow-dot"></span> A complete word search</p>
+            <h1 class="hero-title">Find every word.<br><em>Prove it.</em></h1>
+            <p class="hero-lede">A 4×4 Boggle board with a solver that knows the whole answer: every word, every path, and the exact maximum score. Not a sample. Not an estimate.</p>
+
+            <div class="hero-actions">
+              <button class="btn btn-primary btn-large" id="startDaily" type="button" disabled>Play today's board <span class="btn-arrow" aria-hidden="true">→</span></button>
+              <button class="btn btn-secondary btn-large" id="startRandom" type="button" disabled>Random board</button>
+            </div>
+
+            <div class="round-options">
+              <label class="field">
+                <span>Opponent</span>
+                <select id="opponentSelect">
+                  <option value="solo">Solo solve</option>
+                  <option value="casual">CPU · Casual</option>
+                  <option value="sharp" selected>CPU · Sharp</option>
+                  <option value="ruthless">CPU · Ruthless</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Round</span>
+                <select id="roundSelect">
+                  <option value="60">1:00</option>
+                  <option value="120">2:00</option>
+                  <option value="180" selected>3:00</option>
+                  <option value="300">5:00</option>
+                </select>
+              </label>
+            </div>
+
+            <p class="load-status" id="loadStatus" role="status">Loading the word list…</p>
+            <p class="hero-meta">
+              <span><b id="heroWordCount">170,318</b> words</span>
+              <span>UTC daily seed</span>
+              <span>No network after load</span>
+            </p>
+          </div>
+
+          <div class="hero-art">
+            <div class="art-halo" aria-hidden="true"></div>
+            <p class="preview-caption">A sample board, solved</p>
+            <div class="preview-board" id="previewBoard" aria-hidden="true"></div>
+            <div class="solver-badge">
+              <span>Exact maximum</span>
+              <strong id="previewMax">—</strong>
+              <small><span id="previewWords">—</span> words · <span id="previewMs">—</span> ms</small>
+            </div>
+            <span class="float-chip chip-qu" aria-hidden="true">Qu</span>
+            <span class="float-chip chip-11" aria-hidden="true">8+ = 11</span>
+            <span class="float-chip chip-dfs" aria-hidden="true">DFS × trie</span>
+          </div>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature glass">
+            <span class="feature-icon icon-blue" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 18V8m5 10V5m5 13v-7m5 7V9"/><path d="M3 21h18"/></svg>
+            </span>
+            <h2>The whole answer</h2>
+            <p>A trie and a depth-first walk over every legal path. No sampling, no pruning that could drop a word, no heuristic score.</p>
+          </article>
+          <article class="feature glass">
+            <span class="feature-icon icon-aqua" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>
+            </span>
+            <h2>Same board, everywhere</h2>
+            <p>The daily board is seeded from the UTC date, so every browser gets the same sixteen tiles without a server.</p>
+          </article>
+          <article class="feature glass">
+            <span class="feature-icon icon-pink" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M5 17c2-7 5-10 7-10s5 3 7 10"/><circle cx="8" cy="8" r="1.4"/><circle cx="16" cy="8" r="1.4"/><path d="M8 8h8"/></svg>
+            </span>
+            <h2>A CPU you can inspect</h2>
+            <p>Strength is a parameter: find probability by word length, an attempt cost, and a match-aware switch when the clock gets short.</p>
+          </article>
+        </div>
+
+        <section class="lab glass" id="lab" aria-labelledby="labTitle">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow"><span class="eyebrow-dot"></span> Board lab · stretch</p>
+              <h2 id="labTitle">What does a Boggle board look like?</h2>
+              <p class="section-lede">Sample random boards with the full dictionary, then climb toward a high scorer. Everything runs here in the browser. Results are <b>best found</b>, never a proven maximum.</p>
+            </div>
+            <div class="lab-actions">
+              <button class="btn btn-secondary" id="sampleBtn" type="button" disabled>Sample 250 boards</button>
+              <button class="btn btn-ghost" id="climbBtn" type="button" disabled>Hill-climb</button>
+            </div>
+          </div>
+
+          <p class="lab-status" id="labStatus" role="status">Waiting for the dictionary.</p>
+          <p class="lab-summary" id="labSummary">No sample yet. The solver is exact for each board; the distribution is measured, not assumed.</p>
+
+          <div class="lab-grid">
+            <div class="lab-card">
+              <div class="lab-card-head"><h3>Words per board</h3><span>250 random boards</span></div>
+              <div class="histogram" id="wordHistogram" aria-label="Histogram of words per board"></div>
+            </div>
+            <div class="lab-card">
+              <div class="lab-card-head"><h3>Maximum score</h3><span>exact per board</span></div>
+              <div class="histogram" id="scoreHistogram" aria-label="Histogram of maximum score per board"></div>
+            </div>
+          </div>
+
+          <div class="hill-card">
+            <div class="hill-board-wrap">
+              <div class="mini-board" id="hillBoard" aria-hidden="true"></div>
+              <span class="hill-tag">Best found</span>
+            </div>
+            <div class="hill-copy">
+              <h3>Climb, then stop</h3>
+              <p id="hillMeta">Run a sample, then hill-climb by swapping two tiles and keeping any board with a higher exact maximum.</p>
+              <button class="btn btn-primary" id="playHillBtn" type="button" disabled>Play this board</button>
+              <p class="fine-print">A local search result is not an upper bound. The label stays “best found.”</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="how-strip glass" aria-label="How it works">
+          <div class="how-step"><span>01</span><div><h3>Trace or type</h3><p>Drag across adjacent tiles, tap them, or type into the word box. Qu is one tile and two letters.</p></div></div>
+          <div class="how-step"><span>02</span><div><h3>Every word counts once</h3><p>3–4 letters = 1, 5 = 2, 6 = 3, 7 = 5, 8+ = 11. Duplicates are rejected immediately.</p></div></div>
+          <div class="how-step"><span>03</span><div><h3>Settle the board</h3><p>After the round, compare your score with the board's exact maximum and trace every word you missed.</p></div></div>
+        </section>
+      </section>
+
+      <section class="screen game-screen" id="screenGame" hidden>
+        <div class="game-head glass">
+          <button class="btn btn-ghost btn-compact" id="endBtn" type="button">End round</button>
+          <div class="round-meta">
+            <span class="pill" id="modePill">Daily</span>
+            <span class="round-detail" id="modeDetail">—</span>
+          </div>
+          <div class="timer" id="timerBlock">
+            <div class="timer-line"><span id="timerText">3:00</span><small>left</small></div>
+            <div class="timer-track" aria-hidden="true"><span id="timerFill"></span></div>
+          </div>
+          <div class="hud-score"><span>You</span><strong id="scoreNow">0</strong></div>
+          <div class="hud-score cpu-hud" id="cpuHud" hidden><span id="cpuSkillLabel">CPU</span><strong id="cpuScoreNow">0</strong></div>
+        </div>
+
+        <div class="game-layout">
+          <div class="play-column">
+            <div class="board-card glass">
+              <div class="board-top">
+                <span class="board-label">Trace a word</span>
+                <span class="found-counter" id="foundCount">0 found</span>
+              </div>
+
+              <form class="word-form" id="wordForm" autocomplete="off">
+                <label class="sr-only" for="wordInput">Type a word</label>
+                <input class="word-input" id="wordInput" name="word" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="20" placeholder="Type a word, or tap tiles">
+                <button class="btn btn-primary" id="submitBtn" type="submit">Submit</button>
+              </form>
+
+              <div class="board-wrap">
+                <div class="board" id="board" role="group" aria-label="Boggle board. Type a word above, or select adjacent tiles."></div>
+                <svg class="path-layer" id="pathLayer" aria-hidden="true"></svg>
+              </div>
+
+              <div class="word-line">
+                <span class="current-word" id="currentWord">—</span>
+                <span class="word-score" id="wordScore"></span>
+              </div>
+
+              <div class="board-actions">
+                <button class="btn btn-ghost btn-compact" id="clearBtn" type="button">Clear</button>
+                <span class="key-hint"><kbd>Enter</kbd> submits · <kbd>Esc</kbd> clears · <kbd>Backspace</kbd> undoes a tile</span>
+              </div>
+
+              <p class="live-message" id="liveMessage" role="status"></p>
+            </div>
+          </div>
+
+          <aside class="side-column" aria-label="Round details">
+            <div class="side-card glass">
+              <div class="side-head"><h2>Round</h2><span id="wordsFound">0 words</span></div>
+              <div class="stat-pair">
+                <div><span>Score</span><strong id="sideScore">0</strong></div>
+                <div><span>Words</span><strong id="sideWords">0</strong></div>
+              </div>
+              <div class="cpu-panel" id="cpuPanel" hidden>
+                <div class="cpu-panel-head"><span class="cpu-dot" aria-hidden="true"></span><b id="cpuSkillLabelSide">CPU · Sharp</b><span id="cpuWordsFound">0 found</span></div>
+                <p id="cpuEvent" role="status">Waiting for the first attempt…</p>
+              </div>
+            </div>
+
+            <div class="side-card glass">
+              <div class="side-head"><h2>Found words</h2><span id="foundTotal">0</span></div>
+              <div class="word-list" id="foundList"><p class="empty">Nothing yet. Longer words pay more.</p></div>
+            </div>
+
+            <div class="side-card glass scoring-card">
+              <div class="side-head"><h2>Scoring</h2><span>exact table</span></div>
+              <dl class="score-list">
+                <div><dt>3–4 letters</dt><dd>1</dd></div>
+                <div><dt>5 letters</dt><dd>2</dd></div>
+                <div><dt>6 letters</dt><dd>3</dd></div>
+                <div><dt>7 letters</dt><dd>5</dd></div>
+                <div><dt>8+ letters</dt><dd>11</dd></div>
+              </dl>
+              <p class="side-note">Qu is one tile, two letters. A word can use each tile once.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="screen results-screen" id="screenResults" hidden>
+        <div class="results-head glass">
+          <div>
+            <p class="eyebrow"><span class="eyebrow-dot"></span> Round complete</p>
+            <h1 class="results-title" id="resultTitle" tabindex="-1">The board, settled.</h1>
+            <p class="results-sub" id="resultsSub">—</p>
+          </div>
+          <div class="result-actions">
+            <button class="btn btn-primary" id="playAgain" type="button">Play again</button>
+            <button class="btn btn-secondary" id="newBoard" type="button">New board</button>
+            <button class="btn btn-ghost" id="backHome" type="button">Home</button>
+          </div>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-card glass"><span>Your score</span><strong id="resScore">0</strong><small id="resScoreOf">of 0 points</small></div>
+          <div class="summary-card glass"><span>Board maximum</span><strong id="resMax">0</strong><small>exact</small></div>
+          <div class="summary-card glass"><span>Words found</span><strong id="resWords">0</strong><small id="resWordsOf">of 0 words</small></div>
+          <div class="summary-card glass"><span>Coverage</span><strong id="resPercent">0%</strong><small id="resScorePercent">of points</small></div>
+        </div>
+
+        <p class="cpu-result glass" id="cpuResult" hidden></p>
+
+        <div class="results-layout">
+          <div class="results-board-column">
+            <div class="board-card glass">
+              <div class="board-top"><span class="board-label">The board</span><span class="found-counter" id="resultPathLabel">Click a word</span></div>
+              <div class="board-wrap">
+                <div class="board board-static" id="resultBoard" role="group" aria-label="Board with the selected word path"></div>
+                <svg class="path-layer" id="resultPathLayer" aria-hidden="true"></svg>
+              </div>
+              <p class="path-readout" id="pathReadout">Select any word to see its path.</p>
+            </div>
+            <p class="result-meta glass" id="resultMeta">—</p>
+          </div>
+
+          <div class="results-lists">
+            <div class="list-card glass">
+              <div class="list-head"><h2>Your words</h2><span id="yourCount">0</span></div>
+              <div class="word-list tall" id="yourWords"></div>
+            </div>
+            <div class="list-card glass">
+              <div class="list-head"><h2>Missed words</h2><span id="missedCount">0</span></div>
+              <p class="list-note">Sorted by score. Click one to trace it on the board.</p>
+              <div class="word-list tall" id="missedWords"></div>
+            </div>
+            <div class="list-card glass">
+              <div class="list-head"><h2>Longest words</h2><span>up to 12</span></div>
+              <div class="word-list" id="longestWords"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="page-foot">
+      <div class="foot-main">
+        <p>Boggle Lab is an independent word game. Boggle is a trademark of Hasbro; this project is not affiliated with or endorsed by Hasbro.</p>
+        <nav class="foot-nav" aria-label="Footer">
+          <a href="https://slayyyyer.github.io/">Justin Baker</a>
+          <a href="https://slayyyyer.github.io/projects/">Projects</a>
+          <a href="https://github.com/slayyyyer/boggle">Source</a>
+          <a href="#top">Back to top ↑</a>
+        </nav>
+      </div>
+      <p class="foot-fine">Vanilla HTML, CSS and JavaScript. No framework, no build step, no analytics. The word list is public-domain ENABLE1.</p>
+    </footer>
+  </div>
+
+  <dialog class="how-dialog" id="howDialog">
+    <form method="dialog" class="dialog-bar">
+      <h2>How Boggle Lab works</h2>
+      <button class="dialog-close" value="close" aria-label="Close dialog">×</button>
+    </form>
+    <div class="dialog-body">
+      <section>
+        <h3>The rules</h3>
+        <p>Find words of three or more letters by moving between adjacent tiles — horizontally, vertically or diagonally. A tile can be used once per word. Qu is printed on one tile, counts as two letters, and scores by its letter count. Each distinct word counts once.</p>
+      </section>
+      <section>
+        <h3>The guarantee</h3>
+        <p>For the shipped word list, the solver builds a trie and walks every simple path from every starting tile. It returns every word with a legal path, one path for each word, and the number of distinct paths. The maximum score is the sum of those distinct words. It is exact for that board and that dictionary — not a sample, and not a claim about every English dictionary.</p>
+      </section>
+      <section>
+        <h3>The dictionary</h3>
+        <p>ENABLE1, 3–16 letters, minus a short blocked-terms list. ENABLE1 is released into the public domain by its authors. The shipped file has <b>170,318</b> words and its source checksum is pinned in the repository. Words containing Q not followed by U are in the list but can never be formed: the only Q tile is Qu.</p>
+      </section>
+      <section>
+        <h3>The CPU</h3>
+        <p>The CPU knows the full solved list, so strength is a parameter rather than a performance. Each attempt costs time and succeeds with a probability that falls with word length. With 30 seconds left and a lead, it only attempts words it is likely to find, and may idle. When behind with 45 seconds left, it accepts risky long words because only a swing can win. It never sees your words — only the score gap.</p>
+      </section>
+      <section>
+        <h3>The board lab</h3>
+        <p>The sample and hill climb are measured in this browser against the full dictionary. A hill-climb result is labelled “best found” because a local search cannot prove a board is optimal.</p>
+      </section>
+      <section>
+        <h3>Keyboard and limits</h3>
+        <p>Type in the word box and press Enter. Escape clears. Every tile is a button, so Tab and Enter/Space also work; arrow keys are not required. The timer pauses while the tab is hidden. Only the 4×4 board ships; the solver and generator take a side parameter, but a 5×5 dice set and layout are not included.</p>
+      </section>
+    </div>
+  </dialog>
+
+  <noscript>
+    <p class="noscript">Boggle Lab needs JavaScript. The solver and word list are local; nothing is sent anywhere.</p>
+  </noscript>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

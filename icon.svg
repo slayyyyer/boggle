@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Boggle Lab">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8ce7ff"/>
+      <stop offset=".55" stop-color="#38b9e8"/>
+      <stop offset="1" stop-color="#0a6fd0"/>
+    </linearGradient>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e4f6ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#bg)"/>
+  <rect x="7" y="7" width="22" height="22" rx="6" fill="url(#tile)"/>
+  <rect x="35" y="7" width="22" height="22" rx="6" fill="url(#tile)" opacity=".86"/>
+  <rect x="7" y="35" width="22" height="22" rx="6" fill="#ffb7d9"/>
+  <rect x="35" y="35" width="22" height="22" rx="6" fill="url(#tile)" opacity=".72"/>
+  <path d="M17 18h6M20 15v6" stroke="#0a6fd0" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+  <path d="M40 46h12" stroke="#0a6fd0" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+  <circle cx="43" cy="41" r="2.4" fill="#b81b64"/>
+  <circle cx="49" cy="46" r="2.4" fill="#b81b64"/>
+</svg>
