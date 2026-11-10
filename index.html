@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f4eddf">
+  <meta name="theme-color" content="#0b0e14">
   <title>Boggle Lab — an exact Boggle solver you can play</title>
   <meta name="description" content="A 4x4 Boggle game backed by a complete solver: every word, every path and the exact maximum score for each board. Daily board, CPU opponent and a board lab.">
   <link rel="canonical" href="https://slayyyyer.github.io/boggle/">
@@ -15,10 +15,10 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Boggle Lab — an exact Boggle solver you can play">
   <meta name="twitter:description" content="Every word, every path and the exact maximum score for each board.">
-  <meta name="color-scheme" content="light">
+  <meta name="color-scheme" content="dark">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/styles.css">
-  <link rel="stylesheet" href="assets/field-notes.css">
+  <link rel="stylesheet" href="assets/game-room.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -37,12 +37,12 @@
       <a class="brand" href="#top" aria-label="Boggle Lab home">
         <span class="brand-mark" aria-hidden="true">
           <svg viewBox="0 0 48 48" role="presentation">
-            <rect x="3" y="3" width="42" height="42" fill="#faf5ea" stroke="#211d18" stroke-width="1.5"/>
-            <rect x="8" y="8" width="14" height="14" fill="#a93427"/>
-            <rect x="26" y="8" width="14" height="14" fill="#d9a52d"/>
-            <rect x="8" y="26" width="14" height="14" fill="#2f5c48"/>
-            <rect x="26" y="26" width="14" height="14" fill="none" stroke="#211d18" stroke-width="1.5"/>
-            <path d="M29 33h8M33 29v8" stroke="#211d18" stroke-width="1.8"/>
+            <rect x="3" y="3" width="42" height="42" rx="9" fill="#0b111a" stroke="#b6ff3c" stroke-width="1.5"/>
+            <rect x="8" y="8" width="14" height="14" rx="3" fill="#b6ff3c"/>
+            <rect x="26" y="8" width="14" height="14" rx="3" fill="#3ce0ff"/>
+            <rect x="8" y="26" width="14" height="14" rx="3" fill="#ff4d9d"/>
+            <rect x="26" y="26" width="14" height="14" rx="3" fill="none" stroke="#b6ff3c" stroke-width="1.5"/>
+            <path d="M29 33h8M33 29v8" stroke="#b6ff3c" stroke-width="1.8"/>
           </svg>
         </span>
         <span class="brand-copy">
@@ -50,8 +50,6 @@
           <small>an exact word game</small>
         </span>
       </a>
-
-      <span class="topbar-issue" aria-hidden="true">No. 016 / Field notes</span>
 
       <nav class="topnav" aria-label="Primary">
         <button class="navlink" id="navHome" type="button">Play</button>
@@ -122,7 +120,7 @@
 
           <div class="hero-art">
             <div class="art-halo" aria-hidden="true"></div>
-            <p class="preview-caption">Specimen board, solved</p>
+            <p class="preview-caption">Live exact solve</p>
             <div class="preview-board" id="previewBoard" aria-hidden="true"></div>
             <div class="solver-badge">
               <span>Exact maximum</span>

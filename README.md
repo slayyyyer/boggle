@@ -190,7 +190,7 @@ await BoggleLab.benchmark(100)
 index.html                 home, game, results and the native how-it-works dialog
 icon.svg                   app / favicon mark
 assets/styles.css          structural layout and original components
-assets/field-notes.css     Field Notes paper-and-ink visual theme
+assets/game-room.css       Game Room dark arcade visual theme
 js/solver.js               DOM-free trie and exact path solver
 js/boards.js               classic dice, seeded generation, UTC daily seed
 js/cpu.js                  documented strength and match-aware attempt model
