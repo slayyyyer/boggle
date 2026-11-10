@@ -915,7 +915,8 @@ function renderResults(reason) {
     const cpu = state.cpu;
     const verdict = state.score > cpu.score ? "You won" : state.score < cpu.score ? "The CPU won" : "A draw";
     $("cpuResult").hidden = false;
-    $("cpuResult").textContent = `CPU · ${cpu.preset.label} found ${cpu.found.size} words and scored ${cpu.score} of ${solution.maxScore}. ${verdict}, ${state.score}–${cpu.score}. Both players can score the same word.`;
+    const cpuWords = `${cpu.found.size} word${cpu.found.size === 1 ? "" : "s"}`;
+    $("cpuResult").textContent = `CPU · ${cpu.preset.label} found ${cpuWords} and scored ${cpu.score} of ${solution.maxScore}. ${verdict}, ${state.score}–${cpu.score}. Both players can score the same word.`;
   } else {
     $("cpuResult").hidden = true;
     $("cpuResult").textContent = "";
