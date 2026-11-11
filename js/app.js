@@ -856,9 +856,27 @@ function updateWordLine() {
   if (!word && state.previewPath) {
     word = state.previewPath.map((index) => state.cells[index]).join("");
   }
+  const lower = word.toLowerCase();
   $("currentWord").textContent = word ? word.toUpperCase() : "—";
   $("currentWord").classList.toggle("is-empty", !word);
-  $("wordScore").textContent = word.length >= MIN_WORD_LENGTH ? `+${scoreWord(word)}` : "";
+
+  const scoreElement = $("wordScore");
+  let text = "";
+  let statusClass = "";
+  if (lower.length >= MIN_WORD_LENGTH && state.trie && state.solution) {
+    if (!trieHasWord(state.trie, lower)) {
+      text = "not in list";
+      statusClass = "is-invalid";
+    } else if (!state.solution.byWord.has(lower)) {
+      text = "not on board";
+      statusClass = "is-warn";
+    } else {
+      text = `+${scoreWord(lower)}`;
+    }
+  }
+  scoreElement.textContent = text;
+  scoreElement.classList.remove("is-invalid", "is-warn");
+  if (statusClass) scoreElement.classList.add(statusClass);
 }
 
 function clearCurrent() {
@@ -886,7 +904,8 @@ function submitCurrent() {
     return;
   }
   if (!trieHasWord(state.trie, word)) {
-    setMessage(`${word.toUpperCase()} is not in the word list.`, "bad");
+    const listLabel = LEXICONS[state.lexicon]?.label || "the word list";
+    setMessage(`${word.toUpperCase()} is not in ${listLabel}.`, "bad");
     sound.error();
     return;
   }

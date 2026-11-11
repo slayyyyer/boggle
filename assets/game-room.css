@@ -1219,6 +1219,14 @@ a {
   font-size: 10px;
 }
 
+.word-score.is-invalid {
+  color: var(--magenta, #ff4d9d);
+}
+
+.word-score.is-warn {
+  color: var(--amber, #ffc247);
+}
+
 .board-actions {
   margin-top: 5px;
 }
